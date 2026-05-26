@@ -83,30 +83,27 @@ body{background:#f7f4ee;font-family:'DM Sans',sans-serif;font-weight:300;min-hei
   </div>
 </div>
 
-<script type="module">
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getFirestore, doc, setDoc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
-import { getAuth, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-
-const firebaseConfig = {
+<!-- Firebase en mode classique (pas module) pour compatibilité oninput -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+var firebaseConfig = {
   apiKey: "AIzaSyDuqkUJ_pEr4n-RbbP8rCnJWz-tBwMeBns",
   authDomain: "menuscan-a0ead.firebaseapp.com",
   projectId: "menuscan-a0ead",
   appId: "1:865935761009:web:1c161538574d297b0745d0"
 };
+firebase.initializeApp(firebaseConfig);
+var db = firebase.firestore();
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-const RESTO_ID = 'bistrot-grand-liot';
-const PWD = 'grandliot2024';
-
-let MENU = {name:'Bistrot du Grand Liot', sections:[
+var RESTO_ID = 'bistrot-grand-liot';
+var PWD = 'grandliot2024';
+var MENU = {name:'Bistrot du Grand Liot', sections:[
   {title:'Entrées',items:[
     {name:'Oeuf mayo',desc:'',price:'3€',available:true},
     {name:'Pâté Berrichon',desc:'',price:'7€',available:true},
     {name:'Saumon gravlax',desc:'',price:'8,5€',available:true},
-    {name:'Os à moelle en persillade',desc:'',price:'8,5€',available:true},
+    {name:"Os à moelle en persillade",desc:'',price:'8,5€',available:true},
   ]},
   {title:'Plats — Côté terre',items:[
     {name:'Jambon grillé',desc:'',price:'9,5€',available:true},
@@ -120,7 +117,7 @@ let MENU = {name:'Bistrot du Grand Liot', sections:[
     {name:'Gambas flambées (x6)',desc:'',price:'21€',available:true},
   ]},
   {title:'Accompagnements',items:[
-    {name:'Grenailles confites à l\'ail',desc:'Au choix',price:'',available:true},
+    {name:"Grenailles confites à l'ail",desc:'Au choix',price:'',available:true},
     {name:'Mousseline de carottes',desc:'Au choix',price:'',available:true},
     {name:'Patate douce rôtie',desc:'Au choix',price:'',available:true},
     {name:'Riz noir aux épices',desc:'Au choix',price:'',available:true},
@@ -132,7 +129,7 @@ let MENU = {name:'Bistrot du Grand Liot', sections:[
   {title:'Desserts',items:[
     {name:'Café mignardises',desc:'',price:'3,5€',available:true},
     {name:'Brownie caramel',desc:'',price:'7,5€',available:true},
-    {name:'L\'île flottante',desc:'',price:'5,5€',available:true},
+    {name:"L'île flottante",desc:'',price:'5,5€',available:true},
     {name:'Choux glacé',desc:'',price:'7,5€',available:true},
   ]},
   {title:'À Partager',items:[
@@ -144,66 +141,79 @@ let MENU = {name:'Bistrot du Grand Liot', sections:[
   ]},
 ]};
 
-// Load latest from Firebase on login
-window.login = async function() {
-  const p = document.getElementById('pwd').value;
-  const err = document.getElementById('err');
-  if(p !== PWD){ err.textContent='Mot de passe incorrect'; err.style.display='block'; return; }
+function login() {
+  var p = document.getElementById('pwd').value;
+  var err = document.getElementById('err');
+  if(p !== PWD) { err.textContent='Mot de passe incorrect'; err.style.display='block'; return; }
   err.style.display='none';
-  // Load current menu from Firebase
-  try {
-    const snap = await getDoc(doc(db, 'menus', RESTO_ID));
-    if(snap.exists()) MENU = snap.data();
-  } catch(e) { /* use default */ }
-  document.getElementById('login').style.display='none';
-  document.getElementById('admin').style.display='block';
-  render();
-};
+  // Charger depuis Firebase
+  db.collection('menus').doc(RESTO_ID).get().then(function(snap) {
+    if(snap.exists) MENU = snap.data();
+    document.getElementById('login').style.display='none';
+    document.getElementById('admin').style.display='block';
+    render();
+  }).catch(function() {
+    document.getElementById('login').style.display='none';
+    document.getElementById('admin').style.display='block';
+    render();
+  });
+}
 
-function render(){
-  const c=document.getElementById('sections'); c.innerHTML='';
-  MENU.sections.forEach((s,si)=>{
-    const div=document.createElement('div'); div.className='sec';
-    div.innerHTML=`<div class="sec-head"><input class="sec-title-input" value="${esc(s.title)}" oninput="MENU.sections[${si}].title=this.value"><button class="sec-add" onclick="addItem(${si})">+ Plat</button><button class="sec-del" onclick="delSection(${si})">Supprimer</button></div><div id="items-${si}">${s.items.map((it,ii)=>rowHTML(si,ii,it)).join('')}</div>`;
+function render() {
+  var c = document.getElementById('sections'); c.innerHTML='';
+  MENU.sections.forEach(function(s, si) {
+    var div = document.createElement('div'); div.className='sec';
+    var items = s.items.map(function(it, ii) { return rowHTML(si, ii, it); }).join('');
+    div.innerHTML = '<div class="sec-head"><input class="sec-title-input" value="'+esc(s.title)+'" oninput="MENU.sections['+si+'].title=this.value"><button class="sec-add" onclick="addItem('+si+')">+ Plat</button><button class="sec-del" onclick="delSection('+si+')">Supprimer</button></div><div id="items-'+si+'">'+items+'</div>';
     c.appendChild(div);
   });
 }
 
-function rowHTML(si,ii,it){
-  return `<div class="row${it.available===false?' off':''}" id="row-${si}-${ii}">
-    <div class="row-fields">
-      <input class="row-name" value="${esc(it.name)}" placeholder="Nom" oninput="MENU.sections[${si}].items[${ii}].name=this.value">
-      <input class="row-price" value="${esc(it.price)}" placeholder="Prix" oninput="MENU.sections[${si}].items[${ii}].price=this.value">
-      <input class="row-desc" value="${esc(it.desc||'')}" placeholder="Description" oninput="MENU.sections[${si}].items[${ii}].desc=this.value">
-    </div>
-    <div class="row-right">
-      <button class="row-del" onclick="delItem(${si},${ii})">✕</button>
-      <label class="tog"><input type="checkbox" ${it.available!==false?'checked':''} onchange="toggleItem(${si},${ii},this.checked)"><span class="tsl"></span></label>
-    </div>
-  </div>`;
+function rowHTML(si, ii, it) {
+  return '<div class="row'+(it.available===false?' off':'')+'" id="row-'+si+'-'+ii+'">'+
+    '<div class="row-fields">'+
+      '<input class="row-name" value="'+esc(it.name)+'" placeholder="Nom" oninput="MENU.sections['+si+'].items['+ii+'].name=this.value">'+
+      '<input class="row-price" value="'+esc(it.price)+'" placeholder="Prix" oninput="MENU.sections['+si+'].items['+ii+'].price=this.value">'+
+      '<input class="row-desc" value="'+esc(it.desc||'')+'" placeholder="Description" oninput="MENU.sections['+si+'].items['+ii+'].desc=this.value">'+
+    '</div>'+
+    '<div class="row-right">'+
+      '<button class="row-del" onclick="delItem('+si+','+ii+')">✕</button>'+
+      '<label class="tog"><input type="checkbox"'+(it.available!==false?' checked':'')+' onchange="toggleItem('+si+','+ii+',this.checked)"><span class="tsl"></span></label>'+
+    '</div></div>';
 }
 
 function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
-window.toggleItem=(si,ii,val)=>{ MENU.sections[si].items[ii].available=val; document.getElementById(`row-${si}-${ii}`).className='row'+(val?'':' off'); };
-window.delItem=(si,ii)=>{ MENU.sections[si].items.splice(ii,1); render(); };
-window.addItem=(si)=>{ MENU.sections[si].items.push({name:'',desc:'',price:'',available:true}); render(); };
-window.delSection=(si)=>{ if(confirm('Supprimer ?')){ MENU.sections.splice(si,1); render(); } };
-window.addSection=()=>{ MENU.sections.push({title:'Nouvelle section',items:[]}); render(); };
 
-window.publish = async function(){
-  const btn=document.getElementById('pub-btn'), icon=document.getElementById('pub-icon'), txt=document.getElementById('pub-txt');
-  const st=document.getElementById('status'), stxt=document.getElementById('stxt');
+function toggleItem(si, ii, val) {
+  MENU.sections[si].items[ii].available = val;
+  document.getElementById('row-'+si+'-'+ii).className = 'row'+(val?'':' off');
+}
+function delItem(si, ii) { MENU.sections[si].items.splice(ii,1); render(); }
+function addItem(si) { MENU.sections[si].items.push({name:'',desc:'',price:'',available:true}); render(); }
+function delSection(si) { if(confirm('Supprimer ?')){ MENU.sections.splice(si,1); render(); } }
+function addSection() { MENU.sections.push({title:'Nouvelle section',items:[]}); render(); }
+
+function publish() {
+  var btn=document.getElementById('pub-btn'), icon=document.getElementById('pub-icon'), txt=document.getElementById('pub-txt');
+  var st=document.getElementById('status'), stxt=document.getElementById('stxt');
   btn.disabled=true; icon.textContent='⏳'; txt.textContent='Publication…';
   st.className='status'; stxt.textContent='Envoi vers Firebase…';
-  try {
-    await setDoc(doc(db,'menus',RESTO_ID), MENU);
+
+  // Lire les valeurs actuelles des inputs avant de publier
+  var inputs = document.querySelectorAll('.row-name');
+  inputs.forEach(function(input) {
+    // Les valeurs sont déjà synchro via oninput
+  });
+
+  db.collection('menus').doc(RESTO_ID).set(MENU).then(function() {
     st.className='status ok'; stxt.textContent='✓ Menu publié ! Visible instantanément.';
     document.getElementById('last-pub').textContent='Publié à '+new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
-  } catch(e) {
+    btn.disabled=false; icon.textContent='✓'; txt.textContent='Publier';
+  }).catch(function(e) {
     st.className='status ko'; stxt.textContent='✗ Erreur : '+e.message;
-  }
-  btn.disabled=false; icon.textContent='✓'; txt.textContent='Publier';
-};
+    btn.disabled=false; icon.textContent='✓'; txt.textContent='Publier';
+  });
+}
 </script>
 </body>
 </html>
