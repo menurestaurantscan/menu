@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin — Concordia Restaurant</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#faf8f4;font-family:'DM Sans',sans-serif;font-weight:300;min-height:100vh}
+#login{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+.card{background:#fff;border:1px solid #e8e0d5;border-radius:20px;padding:48px 36px;max-width:380px;width:100%;text-align:center}
+.card h1{font-family:'Playfair Display',serif;font-size:24px;color:#b83a1a;margin-bottom:4px}
+.card .sub{font-size:13px;color:#9a8878;margin-bottom:32px}
+.field{margin-bottom:14px;text-align:left}
+.field label{font-size:12px;color:#9a8878;display:block;margin-bottom:6px;letter-spacing:.04em;text-transform:uppercase}
+.field input{width:100%;background:#faf8f4;border:1px solid #e8e0d5;border-radius:10px;padding:13px 16px;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:border-color .2s}
+.field input:focus{border-color:#b83a1a}
+.err{font-size:12px;color:#b83a1a;margin-bottom:12px;display:none;background:#fdf0f0;border:1px solid #f0c8c8;border-radius:8px;padding:8px 12px}
+.btn-login{width:100%;background:#b83a1a;color:#fff;border:none;padding:14px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;cursor:pointer;margin-top:8px}
+#admin{display:none}
+.topbar{background:#fff;border-bottom:1px solid #e8e0d5;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;gap:12px}
+.topbar h2{font-family:'Playfair Display',serif;font-size:17px;color:#b83a1a}
+.topbar p{font-size:11px;color:#9a8878;margin-top:1px}
+.pub-btn{background:#b83a1a;color:#fff;border:none;padding:11px 22px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:7px;flex-shrink:0}
+.pub-btn:disabled{opacity:.5;cursor:not-allowed}
+.wrap{max-width:680px;margin:0 auto;padding:24px 16px}
+.status{background:#fff;border:1px solid #e8e0d5;border-radius:12px;padding:12px 18px;margin-bottom:20px;font-size:13px;color:#7a6a5a;display:flex;align-items:center;gap:10px;transition:all .3s}
+.status.ok{border-color:#6abf85;background:#f0faf4;color:#2d7a4a}
+.status.ko{border-color:#f0a0a0;background:#fdf0f0;color:#b83a1a}
+.dot{width:8px;height:8px;border-radius:50%;background:#d4c8bc;flex-shrink:0}
+.status.ok .dot{background:#6abf85}.status.ko .dot{background:#e86a5a}
+.sec{margin-bottom:20px;background:#fff;border:1px solid #e8e0d5;border-radius:14px;overflow:hidden}
+.sec-head{display:flex;align-items:center;gap:10px;padding:12px 18px;background:#faf8f4;border-bottom:1px solid #f0ece6}
+.sec-title-input{font-family:'Playfair Display',serif;font-size:17px;color:#b83a1a;background:transparent;border:none;outline:none;flex:1;font-weight:600}
+.sec-del{background:transparent;border:1px solid #e8e0d5;color:#b8a898;font-size:12px;padding:3px 10px;border-radius:100px;cursor:pointer;font-family:'DM Sans',sans-serif}
+.sec-add{background:transparent;border:1px solid #c8e0c8;color:#6abf85;font-size:12px;padding:3px 10px;border-radius:100px;cursor:pointer;font-family:'DM Sans',sans-serif}
+.row{border-bottom:1px solid #f5f0eb;padding:11px 18px;display:flex;align-items:flex-start;gap:12px}
+.row:last-child{border-bottom:none}.row.off{background:#fdfaf8}
+.row-fields{flex:1;display:grid;grid-template-columns:1fr auto;gap:8px}
+.row-name{font-size:14px;color:#2a2118;background:transparent;border:none;outline:none;width:100%;padding:3px 0;border-bottom:1px solid transparent;font-family:'DM Sans',sans-serif}
+.row-name:focus{border-bottom-color:#e8e0d5}
+.row.off .row-name{text-decoration:line-through;color:#9a8878}
+.row-desc{font-size:12px;color:#9a8878;background:transparent;border:none;outline:none;width:100%;padding:2px 0;font-family:'DM Sans',sans-serif}
+.row-price{font-size:13px;color:#b83a1a;font-weight:500;background:transparent;border:1px solid #e8e0d5;border-radius:8px;padding:5px 10px;outline:none;width:72px;font-family:'DM Sans',sans-serif;text-align:center}
+.row-right{display:flex;flex-direction:column;align-items:center;gap:8px;flex-shrink:0}
+.row-del{background:transparent;border:none;color:#d4c8bc;cursor:pointer;font-size:15px;padding:2px}
+.row-del:hover{color:#b83a1a}
+.tog{position:relative;width:40px;height:22px;flex-shrink:0}
+.tog input{opacity:0;width:0;height:0;position:absolute}
+.tsl{position:absolute;inset:0;background:#d4c8bc;border-radius:11px;cursor:pointer;transition:.2s}
+.tsl::after{content:'';position:absolute;width:16px;height:16px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}
+.tog input:checked+.tsl{background:#6abf85}
+.tog input:checked+.tsl::after{transform:translateX(18px)}
+.add-sec-btn{width:100%;background:transparent;border:1.5px dashed #e8e0d5;border-radius:12px;padding:13px;color:#b8a898;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;margin-bottom:24px}
+</style>
+</head>
+<body>
+
+<div id="login">
+  <div class="card">
+    <h1>Concordia Restaurant</h1>
+    <div class="sub">Administration du menu</div>
+    <div class="err" id="err"></div>
+    <div class="field">
+      <label>Mot de passe</label>
+      <input type="password" id="pwd" placeholder="••••••••" onkeydown="if(event.key==='Enter')login()">
+    </div>
+    <button class="btn-login" onclick="login()">Connexion</button>
+  </div>
+</div>
+
+<div id="admin">
+  <div class="topbar">
+    <div><h2>Concordia Restaurant</h2><p id="last-pub">Aucune publication</p></div>
+    <button class="pub-btn" id="pub-btn" onclick="publish()"><span id="pub-icon">✓</span><span id="pub-txt">Publier</span></button>
+  </div>
+  <div class="wrap">
+    <div class="status" id="status"><div class="dot"></div><span id="stxt">Modifiez le menu puis cliquez Publier.</span></div>
+    <div id="sections"></div>
+    <button class="add-sec-btn" onclick="addSection()">+ Ajouter une section</button>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey: "AIzaSyDuqkUJ_pEr4n-RbbP8rCnJWz-tBwMeBns",
+  authDomain: "menuscan-a0ead.firebaseapp.com",
+  projectId: "menuscan-a0ead",
+  appId: "1:865935761009:web:1c161538574d297b0745d0"
+});
+var db = firebase.firestore();
+var RESTO_ID = 'concordia';
+var PWD = 'concordia2024';
+var MENU = {name:'Concordia Restaurant', sections:[
+  {title:'Entrées', items:[
+    {name:'Salade de chèvre chaud', desc:'Toasts de chèvre fondant, roquette, noix caramélisées, miel de fleurs et vinaigrette balsamique.', price:'9€', available:true},
+    {name:'Tartare de saumon frais', desc:'Dés de saumon mariné aux agrumes, avocat crémeux, ciboulette, blinis croustillants.', price:'11€', available:true},
+  ]},
+  {title:'Plats', items:[
+    {name:'Entrecôte grillée, sauce au poivre', desc:'Entrecôte de bœuf maturée, frites maison, salade verte, sauce au poivre crémeuse.', price:'24€', available:true},
+    {name:'Magret de canard aux figues', desc:'Magret rôti, réduction de vin rouge, figues confites, écrasé de pommes de terre à la truffe.', price:'19€', available:true},
+    {name:'Risotto aux champignons sauvages', desc:'Risotto crémeux, champignons forestiers, parmesan fraîchement râpé et persil.', price:'17€', available:true},
+  ]},
+  {title:'Desserts', items:[
+    {name:'Tarte tatin maison', desc:'Pommes caramélisées, pâte feuilletée dorée, boule de glace vanille.', price:'6€', available:true},
+    {name:'Café gourmand', desc:'Mini-desserts maison : macaron, financier, mousse chocolat, sorbet citron, espresso.', price:'7€', available:true},
+  ]},
+]};
+
+function login() {
+  var p = document.getElementById('pwd').value;
+  var err = document.getElementById('err');
+  if(p !== PWD) { err.textContent='Mot de passe incorrect'; err.style.display='block'; return; }
+  err.style.display='none';
+  db.collection('menus').doc(RESTO_ID).get().then(function(snap) {
+    if(snap.exists) MENU = snap.data();
+    document.getElementById('login').style.display='none';
+    document.getElementById('admin').style.display='block';
+    render();
+  }).catch(function() {
+    document.getElementById('login').style.display='none';
+    document.getElementById('admin').style.display='block';
+    render();
+  });
+}
+
+function render() {
+  var c = document.getElementById('sections'); c.innerHTML='';
+  MENU.sections.forEach(function(s, si) {
+    var div = document.createElement('div'); div.className='sec';
+    var items = s.items.map(function(it, ii) { return rowHTML(si, ii, it); }).join('');
+    div.innerHTML = '<div class="sec-head"><input class="sec-title-input" value="'+esc(s.title)+'" oninput="MENU.sections['+si+'].title=this.value"><button class="sec-add" onclick="addItem('+si+')">+ Plat</button><button class="sec-del" onclick="delSection('+si+')">Supprimer</button></div><div id="items-'+si+'">'+items+'</div>';
+    c.appendChild(div);
+  });
+}
+
+function rowHTML(si, ii, it) {
+  return '<div class="row'+(it.available===false?' off':'')+'" id="row-'+si+'-'+ii+'">'+
+    '<div class="row-fields">'+
+      '<input class="row-name" value="'+esc(it.name)+'" placeholder="Nom" oninput="MENU.sections['+si+'].items['+ii+'].name=this.value">'+
+      '<input class="row-price" value="'+esc(it.price)+'" placeholder="Prix" oninput="MENU.sections['+si+'].items['+ii+'].price=this.value">'+
+      '<input class="row-desc" value="'+esc(it.desc||'')+'" placeholder="Description" oninput="MENU.sections['+si+'].items['+ii+'].desc=this.value">'+
+    '</div>'+
+    '<div class="row-right">'+
+      '<button class="row-del" onclick="delItem('+si+','+ii+')">✕</button>'+
+      '<label class="tog"><input type="checkbox"'+(it.available!==false?' checked':'')+' onchange="toggleItem('+si+','+ii+',this.checked)"><span class="tsl"></span></label>'+
+    '</div></div>';
+}
+
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+function toggleItem(si,ii,val){ MENU.sections[si].items[ii].available=val; document.getElementById('row-'+si+'-'+ii).className='row'+(val?'':' off'); }
+function delItem(si,ii){ MENU.sections[si].items.splice(ii,1); render(); }
+function addItem(si){ MENU.sections[si].items.push({name:'',desc:'',price:'',available:true}); render(); }
+function delSection(si){ if(confirm('Supprimer ?')){ MENU.sections.splice(si,1); render(); } }
+function addSection(){ MENU.sections.push({title:'Nouvelle section',items:[]}); render(); }
+
+function publish() {
+  var btn=document.getElementById('pub-btn'), icon=document.getElementById('pub-icon'), txt=document.getElementById('pub-txt');
+  var st=document.getElementById('status'), stxt=document.getElementById('stxt');
+  btn.disabled=true; icon.textContent='⏳'; txt.textContent='Publication…';
+  st.className='status'; stxt.textContent='Envoi vers Firebase…';
+  db.collection('menus').doc(RESTO_ID).set(MENU).then(function() {
+    st.className='status ok'; stxt.textContent='✓ Menu publié ! Visible instantanément.';
+    document.getElementById('last-pub').textContent='Publié à '+new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+    btn.disabled=false; icon.textContent='✓'; txt.textContent='Publier';
+  }).catch(function(e) {
+    st.className='status ko'; stxt.textContent='✗ Erreur : '+e.message;
+    btn.disabled=false; icon.textContent='✓'; txt.textContent='Publier';
+  });
+}
+</script>
+</body>
+</html>
