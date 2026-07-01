@@ -7,55 +7,37 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <style>
-    * { box-sizing: border-box; }
-    body { margin:0; font-family: Arial, sans-serif; background:#f4f1ec; color:#191919; }
-    header { background:#111; color:#fff; padding:22px; text-align:center; }
-    header h1 { margin:0; font-size:26px; }
-    .wrap { max-width:980px; margin:0 auto; padding:22px; }
-    .card { background:#fff; border-radius:18px; padding:20px; box-shadow:0 8px 25px rgba(0,0,0,.08); margin-bottom:18px; }
-    input, textarea { width:100%; padding:10px; border:1px solid #ddd; border-radius:10px; font-size:14px; margin-top:6px; }
-    textarea { min-height:70px; resize:vertical; }
-    button { border:0; border-radius:12px; padding:10px 14px; cursor:pointer; font-weight:700; }
-    .primary { background:#111; color:#fff; }
-    .secondary { background:#eee; color:#111; }
-    .danger { background:#ffe7e7; color:#b00020; }
-    .ok { background:#e7f8ec; color:#167a34; }
-    .row { display:grid; grid-template-columns:1fr 120px 110px; gap:10px; align-items:start; }
-    .item { border:1px solid #eee; border-radius:14px; padding:14px; margin:12px 0; background:#fafafa; }
-    .item-actions, .section-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
-    .section-title { display:flex; gap:10px; align-items:center; margin-bottom:12px; }
-    .section-title input { font-size:20px; font-weight:700; }
-    #login { max-width:420px; margin:70px auto; }
-    #admin { display:none; }
-    .status { margin:12px 0; font-weight:700; }
-    .muted { color:#666; font-size:13px; }
-    @media(max-width:700px) { .row { grid-template-columns:1fr; } }
+    *{box-sizing:border-box} body{margin:0;font-family:Arial,sans-serif;background:#f6f4ef;color:#171717} header{background:#111;color:white;padding:22px;text-align:center}.wrap{max-width:1000px;margin:auto;padding:22px}.card{background:white;border-radius:18px;padding:18px;box-shadow:0 8px 24px rgba(0,0,0,.08);margin-bottom:18px} input,textarea{width:100%;padding:10px;border:1px solid #ddd;border-radius:10px;font-size:14px;margin-top:6px} textarea{min-height:70px;resize:vertical} button{border:0;border-radius:12px;padding:10px 14px;cursor:pointer;font-weight:700}.primary{background:#111;color:white}.secondary{background:#eee;color:#111}.danger{background:#ffe3e3;color:#a40014}.ok{background:#e4f8e9;color:#147a32}.row{display:grid;grid-template-columns:1fr 120px 120px;gap:10px;align-items:end}.item{border:1px solid #eee;border-radius:14px;padding:14px;margin:12px 0;background:#fafafa}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.section-title input{font-size:20px;font-weight:700}.muted{color:#666;font-size:13px}.status{font-weight:700;margin:10px 0}#admin{display:none}#login{max-width:430px;margin:70px auto}@media(max-width:720px){.row{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
-  <header><h1>MenuScan Admin — Paucek and Lage</h1><div class="muted">RESTO_ID : paucek-lage</div></header>
+<header>
+  <h1>MenuScan Admin — Paucek and Lage</h1>
+  <div class="muted">RESTO_ID : paucek-lage</div>
+</header>
 
-  <div id="login" class="card">
-    <h2>Connexion admin</h2>
-    <p class="muted">Entrez le mot de passe pour gérer le menu.</p>
-    <input id="password" type="password" placeholder="Mot de passe" onkeydown="if(event.key==='Enter') login()" />
-    <div style="margin-top:12px"><button class="primary" onclick="login()">Se connecter</button></div>
-    <p id="loginMsg" class="status"></p>
-  </div>
+<div id="login" class="card">
+  <h2>Connexion admin</h2>
+  <p class="muted">Mot de passe : paucek2026</p>
+  <input id="password" type="password" placeholder="Mot de passe" onkeydown="if(event.key==='Enter') login()" />
+  <div class="actions"><button class="primary" onclick="login()">Se connecter</button></div>
+  <p id="loginMsg" class="status danger-text"></p>
+</div>
 
-  <main id="admin" class="wrap">
-    <div class="card">
-      <label>Nom du restaurant</label>
-      <input id="restaurantName" oninput="MENU.restaurant=this.value" />
-      <div class="section-actions">
-        <button class="primary" onclick="publishMenu()">Publier sur Firebase</button>
-        <button class="secondary" onclick="addSection()">Ajouter une section</button>
-      </div>
-      <p id="status" class="status"></p>
-      <p class="muted">URL client : https://menurestaurantscan.github.io/menu/?id=paucek-lage</p>
+<main id="admin" class="wrap">
+  <div class="card">
+    <h2>Informations</h2>
+    <label>Nom du restaurant</label>
+    <input id="restaurantName" oninput="MENU.restaurant=this.value" />
+    <div class="actions">
+      <button class="primary" onclick="publishMenu()">Publier sur Firebase</button>
+      <button class="secondary" onclick="addSection()">Ajouter une section</button>
+      <button class="secondary" onclick="loadMenu()">Recharger depuis Firebase</button>
     </div>
-    <div id="sections"></div>
-  </main>
+    <p id="status" class="status"></p>
+  </div>
+  <div id="sections"></div>
+</main>
 
 <script>
 const RESTO_ID = "paucek-lage";
@@ -65,227 +47,117 @@ const firebaseConfig = {
   apiKey: "AIzaSyDuqkUJ_pEr4n-RbbP8rCnJWz-tBwMeBns",
   authDomain: "menuscan-a0ead.firebaseapp.com",
   projectId: "menuscan-a0ead",
+  storageBucket: "menuscan-a0ead.firebasestorage.app",
+  messagingSenderId: "865935761009",
   appId: "1:865935761009:web:1c161538574d297b0745d0"
 };
+
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
 var MENU = {
-  "restaurant": "Paucek and Lage Restaurant",
-  "sections": [
-    {
-      "name": "Main Courses",
-      "items": [
-        {
-          "name": "Grilled Salmon",
-          "desc": "Fresh salmon fillet seasoned with herbs and grilled to perfection, served with roasted vegetables and lemon-butter sauce.",
-          "price": "18.99",
-          "available": true
-        },
-        {
-          "name": "Vegetable Pad Thai",
-          "desc": "Stir-fried rice noodles with vegetables, tofu, bean sprouts and peanuts in tamarind sauce, garnished with cilantro and lime.",
-          "price": "13.99",
-          "available": true
-        },
-        {
-          "name": "Mushroom Risotto",
-          "desc": "Creamy rice cooked with mushrooms, garlic, shallots, Parmesan cheese, truffle oil and parsley.",
-          "price": "14.99",
-          "available": true
-        },
-        {
-          "name": "Grilled Chicken",
-          "desc": "Grilled chicken breast served over crisp lettuce with dressing, shaved cheese, garlic croutons and cherry tomatoes.",
-          "price": "12.99",
-          "available": true
-        },
-        {
-          "name": "Classic Beef",
-          "desc": "Layers of rich tomato sauce, seasoned ground beef, lasagna noodles, creamy béchamel sauce and mozzarella cheese.",
-          "price": "16.99",
-          "available": true
-        },
-        {
-          "name": "Eggplant Parmesan",
-          "desc": "Breaded eggplant with marinara sauce, mozzarella and Parmesan cheese, baked and served with spaghetti marinara.",
-          "price": "15.99",
-          "available": true
-        }
-      ]
-    },
-    {
-      "name": "Beverages",
-      "items": [
-        {
-          "name": "Classic Margarita",
-          "desc": "",
-          "price": "3.99",
-          "available": true
-        },
-        {
-          "name": "Mango Mocktail",
-          "desc": "",
-          "price": "2.99",
-          "available": true
-        },
-        {
-          "name": "Iced Caramel Macchiato",
-          "desc": "",
-          "price": "4.99",
-          "available": true
-        },
-        {
-          "name": "Green Tea Frappuccino",
-          "desc": "",
-          "price": "3.99",
-          "available": true
-        },
-        {
-          "name": "Pineapple Coconut Smoothie",
-          "desc": "",
-          "price": "5.99",
-          "available": true
-        },
-        {
-          "name": "Raspberry Mojito",
-          "desc": "",
-          "price": "3.99",
-          "available": true
-        },
-        {
-          "name": "Blackberry Ginger Sparkler",
-          "desc": "",
-          "price": "2.99",
-          "available": true
-        }
-      ]
-    },
-    {
-      "name": "Desserts",
-      "items": [
-        {
-          "name": "Chocolate Mousse",
-          "desc": "",
-          "price": "5.99",
-          "available": true
-        },
-        {
-          "name": "Apple Pie",
-          "desc": "",
-          "price": "7.99",
-          "available": true
-        },
-        {
-          "name": "Strawberry Shortcake",
-          "desc": "",
-          "price": "6.99",
-          "available": true
-        },
-        {
-          "name": "Fruit Tart",
-          "desc": "",
-          "price": "5.99",
-          "available": true
-        },
-        {
-          "name": "Tiramisu",
-          "desc": "",
-          "price": "8.99",
-          "available": true
-        },
-        {
-          "name": "Chocolate Lava Cake",
-          "desc": "",
-          "price": "6.99",
-          "available": true
-        },
-        {
-          "name": "Cheesecake",
-          "desc": "",
-          "price": "5.99",
-          "available": true
-        }
-      ]
-    }
+  restaurant: "Paucek and Lage Restaurant",
+  sections: [
+    { name: "Main Courses", items: [
+      { name: "Grilled Salmon", desc: "Fresh salmon fillet seasoned with herbs and grilled to perfection, served with roasted vegetables and lemon-butter sauce.", price: "$18.99", available: true },
+      { name: "Vegetable Pad Thai", desc: "Stir-fried rice noodles with a medley of fresh vegetables, tofu, bean sprouts, and peanuts, tossed in a tangy tamarind sauce and garnished with cilantro and lime wedges.", price: "$13.99", available: true },
+      { name: "Mushroom Risotto", desc: "Creamy rice cooked with savory mushrooms, garlic, shallots, and Parmesan cheese, finished with a drizzle of truffle oil and fresh parsley.", price: "$14.99", available: true },
+      { name: "Grilled Chicken", desc: "Grilled chicken breast served atop crisp lettuce, tossed with dressing, shaved cheese, garlic croutons, and cherry tomatoes.", price: "$12.99", available: true },
+      { name: "Classic Beef", desc: "Layers of rich tomato sauce, seasoned ground beef, lasagna noodles, and creamy béchamel sauce, baked to bubbly perfection and topped with melted mozzarella cheese.", price: "$16.99", available: true },
+      { name: "Eggplant Parmesan", desc: "Slices of breaded eggplant, fried to a golden crisp, layered with marinara sauce, mozzarella, and Parmesan cheese, then baked until bubbly and served with spaghetti marinara.", price: "$15.99", available: true }
+    ]},
+    { name: "Beverage", items: [
+      { name: "Classic Margarita", desc: "", price: "$3.99", available: true },
+      { name: "Mango Mocktail", desc: "", price: "$2.99", available: true },
+      { name: "Iced Caramel Macchiato", desc: "", price: "$4.99", available: true },
+      { name: "Green Tea Frappuccino", desc: "", price: "$3.99", available: true },
+      { name: "Pineapple Coconut Smoothie", desc: "", price: "$5.99", available: true },
+      { name: "Raspberry Mojito", desc: "", price: "$3.99", available: true },
+      { name: "Blackberry Ginger Sparkler", desc: "", price: "$2.99", available: true }
+    ]},
+    { name: "Dessert", items: [
+      { name: "Chocolate Mousse", desc: "", price: "$5.99", available: true },
+      { name: "Apple Pie", desc: "", price: "$7.99", available: true },
+      { name: "Strawberry Shortcake", desc: "", price: "$6.99", available: true },
+      { name: "Fruit Tart", desc: "", price: "$5.99", available: true },
+      { name: "Tiramisu", desc: "", price: "$8.99", available: true },
+      { name: "Chocolate Lava Cake", desc: "", price: "$6.99", available: true },
+      { name: "Cheesecake", desc: "", price: "$5.99", available: true }
+    ]}
   ]
 };
 
-function login() {
-  const pass = document.getElementById('password').value;
-  if (pass !== ADMIN_PASSWORD) {
-    document.getElementById('loginMsg').textContent = 'Mot de passe incorrect.';
-    return;
-  }
-  document.getElementById('login').style.display = 'none';
-  document.getElementById('admin').style.display = 'block';
+function login(){
+  const pass = document.getElementById('password').value.trim();
+  if(pass !== ADMIN_PASSWORD){ document.getElementById('loginMsg').textContent = 'Mot de passe incorrect.'; return; }
+  document.getElementById('login').style.display='none';
+  document.getElementById('admin').style.display='block';
   loadMenu();
 }
 
-async function loadMenu() {
-  document.getElementById('status').textContent = 'Chargement du menu...';
-  try {
-    const doc = await db.collection('menus').doc(RESTO_ID).get();
-    if (doc.exists) MENU = doc.data();
+async function loadMenu(){
+  const status = document.getElementById('status');
+  status.textContent = 'Chargement...';
+  try{
+    const snap = await db.collection('menus').doc(RESTO_ID).get();
+    if(snap.exists){ MENU = snap.data(); }
     document.getElementById('restaurantName').value = MENU.restaurant || '';
     render();
-    document.getElementById('status').textContent = doc.exists ? 'Menu chargé depuis Firebase.' : 'Menu prérempli prêt à publier.';
-  } catch (e) {
-    document.getElementById('status').textContent = 'Erreur chargement Firebase : ' + e.message;
+    status.textContent = snap.exists ? 'Menu chargé depuis Firebase.' : 'Menu prérempli prêt à publier.';
+  }catch(e){
     document.getElementById('restaurantName').value = MENU.restaurant || '';
     render();
+    status.textContent = 'Erreur Firebase : ' + e.message;
   }
 }
 
-function render() {
+function render(){
   const root = document.getElementById('sections');
   root.innerHTML = '';
+  MENU.sections = MENU.sections || [];
   MENU.sections.forEach((section, si) => {
+    section.items = section.items || [];
     const card = document.createElement('div');
     card.className = 'card';
     card.innerHTML = `
-      <div class="section-title">
-        <input value="${escapeAttr(section.name)}" oninput="MENU.sections[${si}].name=this.value" />
-      </div>
+      <div class="section-title"><input value="${escapeAttr(section.name || '')}" oninput="MENU.sections[${si}].name=this.value" /></div>
       <div id="items-${si}"></div>
-      <div class="section-actions">
-        <button class="secondary" onclick="addItem(${si})">Ajouter un plat</button>
-        <button class="danger" onclick="deleteSection(${si})">Supprimer la section</button>
-      </div>`;
+      <div class="actions"><button class="secondary" onclick="addItem(${si})">Ajouter un plat</button><button class="danger" onclick="deleteSection(${si})">Supprimer la section</button></div>`;
     root.appendChild(card);
-    const items = card.querySelector(`#items-${si}`);
+    const itemsRoot = card.querySelector('#items-' + si);
     section.items.forEach((item, ii) => {
       const div = document.createElement('div');
       div.className = 'item';
       div.innerHTML = `
         <div class="row">
-          <div><label>Nom</label><input value="${escapeAttr(item.name)}" oninput="MENU.sections[${si}].items[${ii}].name=this.value" /></div>
-          <div><label>Prix</label><input value="${escapeAttr(item.price)}" oninput="MENU.sections[${si}].items[${ii}].price=this.value" /></div>
-          <div><label>Dispo</label><button class="${item.available ? 'ok' : 'danger'}" onclick="toggleAvailable(${si},${ii})">${item.available ? 'Disponible' : 'Indispo'}</button></div>
+          <div><label>Nom</label><input value="${escapeAttr(item.name || '')}" oninput="MENU.sections[${si}].items[${ii}].name=this.value" /></div>
+          <div><label>Prix</label><input value="${escapeAttr(item.price || '')}" oninput="MENU.sections[${si}].items[${ii}].price=this.value" /></div>
+          <div><label>Disponibilité</label><button class="${item.available ? 'ok' : 'danger'}" onclick="toggleAvailable(${si},${ii})">${item.available ? 'Disponible' : 'Indispo'}</button></div>
         </div>
         <label>Description</label>
         <textarea oninput="MENU.sections[${si}].items[${ii}].desc=this.value">${escapeHtml(item.desc || '')}</textarea>
-        <div class="item-actions"><button class="danger" onclick="deleteItem(${si},${ii})">Supprimer</button></div>`;
-      items.appendChild(div);
+        <div class="actions"><button class="danger" onclick="deleteItem(${si},${ii})">Supprimer</button></div>`;
+      itemsRoot.appendChild(div);
     });
   });
 }
 
-function escapeHtml(str) { return String(str).replace(/[&<>]/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[s])); }
-function escapeAttr(str) { return escapeHtml(str).replace(/"/g, '&quot;'); }
-function addSection() { MENU.sections.push({name:'Nouvelle section', items:[]}); render(); }
-function deleteSection(si) { if(confirm('Supprimer cette section ?')) { MENU.sections.splice(si,1); render(); } }
-function addItem(si) { MENU.sections[si].items.push({name:'Nouveau plat', desc:'', price:'', available:true}); render(); }
-function deleteItem(si, ii) { MENU.sections[si].items.splice(ii,1); render(); }
-function toggleAvailable(si, ii) { MENU.sections[si].items[ii].available = !MENU.sections[si].items[ii].available; render(); }
+function escapeHtml(str){ return String(str).replace(/[&<>]/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[s])); }
+function escapeAttr(str){ return escapeHtml(str).replace(/"/g, '&quot;'); }
+function addSection(){ MENU.sections.push({name:'Nouvelle section',items:[]}); render(); }
+function deleteSection(si){ if(confirm('Supprimer cette section ?')){ MENU.sections.splice(si,1); render(); } }
+function addItem(si){ MENU.sections[si].items.push({name:'Nouveau plat',desc:'',price:'',available:true}); render(); }
+function deleteItem(si,ii){ MENU.sections[si].items.splice(ii,1); render(); }
+function toggleAvailable(si,ii){ MENU.sections[si].items[ii].available = !MENU.sections[si].items[ii].available; render(); }
 
-async function publishMenu() {
-  document.getElementById('status').textContent = 'Publication...';
-  try {
+async function publishMenu(){
+  const status = document.getElementById('status');
+  status.textContent = 'Publication...';
+  try{
     await db.collection('menus').doc(RESTO_ID).set(MENU);
-    document.getElementById('status').textContent = 'Menu publié avec succès.';
-  } catch(e) {
-    document.getElementById('status').textContent = 'Erreur publication : ' + e.message;
+    status.textContent = 'Menu publié avec succès ✅';
+  }catch(e){
+    status.textContent = 'Erreur publication Firebase : ' + e.message;
   }
 }
 </script>
