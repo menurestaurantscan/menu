@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin MenuScan - Paris&#x27;s Café &amp; Restaurant</title>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <style>
+    *{box-sizing:border-box} body{margin:0;font-family:Arial,sans-serif;background:#f6f1df;color:#171717} header{background:#101010;color:white;padding:22px;text-align:center}.wrap{max-width:1000px;margin:auto;padding:22px}.card{background:white;border-radius:18px;padding:18px;box-shadow:0 8px 24px rgba(0,0,0,.08);margin-bottom:18px} input,textarea{width:100%;padding:10px;border:1px solid #ddd;border-radius:10px;font-size:14px;margin-top:6px} textarea{min-height:72px;resize:vertical} button{border:0;border-radius:12px;padding:10px 14px;cursor:pointer;font-weight:700}.primary{background:#111;color:white}.secondary{background:#eee;color:#111}.danger{background:#ffe3e3;color:#a40014}.ok{background:#e4f8e9;color:#147a32}.row{display:grid;grid-template-columns:1fr 120px 130px;gap:10px;align-items:end}.item{border:1px solid #eee;border-radius:14px;padding:14px;margin:12px 0;background:#fafafa}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.section-title input{font-size:20px;font-weight:700}.muted{color:#666;font-size:13px}.status{font-weight:700;margin:10px 0}#admin{display:none}#login{max-width:430px;margin:70px auto}@media(max-width:720px){.row{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<header><h1>MenuScan Admin — Paris&#x27;s Café &amp; Restaurant</h1><div class="muted">RESTO_ID : paris-cafe</div></header>
+<div id="login" class="card"><h2>Connexion admin</h2><p class="muted">Mot de passe : paris2026</p><input id="password" type="password" placeholder="Mot de passe" onkeydown="if(event.key==='Enter') login()" /><div class="actions"><button class="primary" onclick="login()">Se connecter</button></div><p id="loginMsg" class="status"></p></div>
+<main id="admin" class="wrap"><div class="card"><h2>Informations</h2><label>Nom du restaurant</label><input id="restaurantName" oninput="MENU.restaurant=this.value; MENU.name=this.value" /><div class="actions"><button class="primary" onclick="publishMenu()">Publier sur Firebase</button><button class="secondary" onclick="addSection()">Ajouter une section</button><button class="secondary" onclick="loadMenu()">Recharger depuis Firebase</button></div><p id="status" class="status"></p></div><div id="sections"></div></main>
+<script>
+const RESTO_ID = "paris-cafe";
+const ADMIN_PASSWORD = "paris2026";
+const firebaseConfig = { apiKey: "AIzaSyDuqkUJ_pEr4n-RbbP8rCnJWz-tBwMeBns", authDomain: "menuscan-a0ead.firebaseapp.com", projectId: "menuscan-a0ead", storageBucket: "menuscan-a0ead.firebasestorage.app", messagingSenderId: "865935761009", appId: "1:865935761009:web:1c161538574d297b0745d0" };
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+var MENU = {
+  "name": "Paris's Café & Restaurant",
+  "restaurant": "Paris's Café & Restaurant",
+  "sections": [
+    {
+      "name": "Lunch & Dinner",
+      "items": [
+        {
+          "name": "Home Made Ravioli",
+          "desc": "Cashew basil pesto, spinach, basil, garlic, parmesan, aubergine, tomato, parmigiano, pine nuts and olive oil. Allergens: G/D/N.",
+          "price": "£14.99",
+          "available": true
+        },
+        {
+          "name": "Salmon",
+          "desc": "Grilled salmon with green peas, served with mixed salad. Add mash +£3. Allergens: D.",
+          "price": "£15.99",
+          "available": true
+        },
+        {
+          "name": "Tuna Salad",
+          "desc": "Green salad, green beans, boiled eggs, tuna, cherry tomatoes, crystallised walnut and French dressing. Allergens: N/E.",
+          "price": "£16.00",
+          "available": true
+        },
+        {
+          "name": "Gnocchi",
+          "desc": "Confit cooked tomato with chicken and spinach. Available GF/V +£1.99.",
+          "price": "£15.00",
+          "available": true
+        },
+        {
+          "name": "Creamy Lasagne",
+          "desc": "Minced beef, bolognese and parmesan. Allergens: G/D.",
+          "price": "£16.00",
+          "available": true
+        },
+        {
+          "name": "Caesar Salad",
+          "desc": "Grilled chicken, boiled egg, romaine lettuce, parmesan, dressing, tomato, herbs and salt crisps. Allergens: E/G/D.",
+          "price": "£16.50",
+          "available": true
+        },
+        {
+          "name": "Wagyu Beef Burger",
+          "desc": "Served with potato wedges, brioche bun, tomato, lettuce and English cheddar. Allergens: E/G/D.",
+          "price": "£17.99",
+          "available": true
+        },
+        {
+          "name": "Chicken Tikka Wrap",
+          "desc": "Served with salad or potato wedges, lettuce, onion, tomato, chilli sauce and Caesar dressing. Allergens: E/G/D.",
+          "price": "£14.99",
+          "available": true
+        },
+        {
+          "name": "Falafel Wrap / Falafel Salad",
+          "desc": "Served with salad or potato wedges, lettuce, onion, tomato, hummus and chilli sauce. Allergens: G.",
+          "price": "£14.99",
+          "available": true
+        },
+        {
+          "name": "Italian Style Meatballs",
+          "desc": "Served with mash, beef meatballs, confit cooked Spanish tomato sauce and coriander. Allergens: E/G/D.",
+          "price": "£15.99",
+          "available": true
+        },
+        {
+          "name": "Ribeye Steak 225g/300g",
+          "desc": "Ribeye cooked your way, served with grilled tomato, gravy and mixed leaf salad. 300g +£3. Allergens: D.",
+          "price": "£16.99",
+          "available": true
+        },
+        {
+          "name": "Grilled Chicken Breast",
+          "desc": "Served with mixed green salad and gravy. Add mash +£3. Allergens: D.",
+          "price": "£15.99",
+          "available": true
+        },
+        {
+          "name": "Sunday Roast Beef",
+          "desc": "Roast beef, grilled vegetables, Yorkshire pudding and gravy. Allergens: G/E/D.",
+          "price": "£21.99",
+          "available": true
+        },
+        {
+          "name": "Sunday Roast Chicken",
+          "desc": "Roast chicken, grilled vegetables, Yorkshire pudding, mash and gravy. Allergens: G/D/E.",
+          "price": "£21.99",
+          "available": true
+        },
+        {
+          "name": "Octopus & Seafood Tagliatelle",
+          "desc": "Pasta tagliatelle with cream, chilli and tarragon. Allergens: G/D/E.",
+          "price": "£23.99",
+          "available": true
+        }
+      ]
+    },
+    {
+      "name": "Sides",
+      "items": [
+        {
+          "name": "Grilled Vegetables",
+          "desc": "",
+          "price": "£6.99",
+          "available": true
+        },
+        {
+          "name": "Mash",
+          "desc": "",
+          "price": "£4.99",
+          "available": true
+        },
+        {
+          "name": "Potato Wedges",
+          "desc": "",
+          "price": "£4.99",
+          "available": true
+        },
+        {
+          "name": "Butter Spinach",
+          "desc": "",
+          "price": "£4.99",
+          "available": true
+        },
+        {
+          "name": "Bread & Butter",
+          "desc": "",
+          "price": "£2.99",
+          "available": true
+        }
+      ]
+    }
+  ]
+};
+function login(){ const p=document.getElementById('password').value; if(p!==ADMIN_PASSWORD){document.getElementById('loginMsg').textContent='Mot de passe incorrect';return;} document.getElementById('login').style.display='none'; document.getElementById('admin').style.display='block'; loadMenu(); }
+async function loadMenu(){ const status=document.getElementById('status'); status.textContent='Chargement...'; try{ const snap=await db.collection('menus').doc(RESTO_ID).get(); if(snap.exists){ MENU=snap.data(); } MENU.name = MENU.name || MENU.restaurant || ''; MENU.restaurant = MENU.restaurant || MENU.name || ''; document.getElementById('restaurantName').value=MENU.restaurant || MENU.name || ''; render(); status.textContent=snap.exists ? 'Menu chargé depuis Firebase.' : 'Menu prérempli prêt à publier.'; }catch(e){ document.getElementById('restaurantName').value=MENU.restaurant || MENU.name || ''; render(); status.textContent='Erreur Firebase : '+e.message; } }
+function render(){ const root=document.getElementById('sections'); root.innerHTML=''; MENU.sections=MENU.sections||[]; MENU.sections.forEach((section,si)=>{ section.items=section.items||[]; const card=document.createElement('div'); card.className='card'; card.innerHTML=`<div class="section-title"><input value="${escapeAttr(section.name||'')}" oninput="MENU.sections[${si}].name=this.value" /></div><div id="items-${si}"></div><div class="actions"><button class="secondary" onclick="addItem(${si})">Ajouter un plat</button><button class="danger" onclick="deleteSection(${si})">Supprimer la section</button></div>`; root.appendChild(card); const itemsRoot=card.querySelector('#items-'+si); section.items.forEach((item,ii)=>{ const div=document.createElement('div'); div.className='item'; div.innerHTML=`<div class="row"><div><label>Nom</label><input value="${escapeAttr(item.name||'')}" oninput="MENU.sections[${si}].items[${ii}].name=this.value" /></div><div><label>Prix</label><input value="${escapeAttr(item.price||'')}" oninput="MENU.sections[${si}].items[${ii}].price=this.value" /></div><div><label>Disponibilité</label><button class="${item.available?'ok':'danger'}" onclick="toggleAvailable(${si},${ii})">${item.available?'Disponible':'Indispo'}</button></div></div><label>Description</label><textarea oninput="MENU.sections[${si}].items[${ii}].desc=this.value">${escapeHtml(item.desc||'')}</textarea><div class="actions"><button class="danger" onclick="deleteItem(${si},${ii})">Supprimer</button></div>`; itemsRoot.appendChild(div); }); }); }
+function addSection(){ MENU.sections.push({name:'Nouvelle section',items:[]}); render(); }
+function deleteSection(si){ if(confirm('Supprimer cette section ?')){ MENU.sections.splice(si,1); render(); } }
+function addItem(si){ MENU.sections[si].items.push({name:'Nouveau plat',desc:'',price:'',available:true}); render(); }
+function deleteItem(si,ii){ MENU.sections[si].items.splice(ii,1); render(); }
+function toggleAvailable(si,ii){ MENU.sections[si].items[ii].available=!MENU.sections[si].items[ii].available; render(); }
+function escapeHtml(str){ return String(str).replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+function escapeAttr(str){ return escapeHtml(str).replace(/"/g,'&quot;'); }
+async function publishMenu(){ const status=document.getElementById('status'); status.textContent='Publication...'; try{ MENU.name = MENU.name || MENU.restaurant; MENU.restaurant = MENU.restaurant || MENU.name; await db.collection('menus').doc(RESTO_ID).set(MENU); status.textContent='Menu publié avec succès ✅'; }catch(e){ status.textContent='Erreur publication Firebase : '+e.message; } }
+</script></body></html>
